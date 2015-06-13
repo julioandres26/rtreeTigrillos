@@ -2,7 +2,7 @@
 --  Richard Delgado
 Ñ-  Bases de Datos 2
 Ñ-  ECCI UCR 
-Julio Calderón
+Julio Calderón Pull test
 --------------------------------------------------------
 
 --------------------------------------------------------
