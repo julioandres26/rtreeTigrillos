@@ -10,15 +10,29 @@ CREATE OR REPLACE TYPE "NODE";
 CREATE OR REPLACE TYPE "NODE_LIST" as table of REF NODE;
 /
 
-CREATE OR REPLACE TYPE "NODE" as object (
+CREATE OR REPLACE TYPE "NODE" AS OBJECT (                     -- Interface de objeto NODE
     node_geometry GEOMETRY,
     list_of_nodes NODE_LIST
     
-    member function node(g geometry, 
+    MEMBER FUNCTION list_status() RETURN INTEGER              -- Funcion que retorna la cantidad de nodos en la lista
+    
+    
+--    member function node(g geometry, 
 );
 /
 
-CREATE OR REPLACE TYPE BODY "NODE" as
+CREATE OR REPLACE TYPE BODY "NODE" AS                         -- Body de objeto NODE
+
+  MEMBER FUNCTION list_status() RETURN INTEGER IS
+  BEGIN
+  
+  -- recorre list_of_nodes y cuenta cuantos tiene
+  
+  
+  END list_status;
+
+END;
+
 --------------------------------------------------------
 --  DDL for Type GEOMETRY
 --------------------------------------------------------
