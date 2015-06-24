@@ -1,14 +1,10 @@
 --------------------------------------------------------
 --  Richard Delgado
-Ã‘-  Bases de Datos 2
-Ã‘-  ECCI UCR 
-Julio CalderÃ³n Pull test
-Third push
-Fourth push
-Fifth push
+Ñ-  Bases de Datos 2
+Ñ-  ECCI UCR 
 --------------------------------------------------------
 
---------------------------------------------------------tengo mucho melloooooooo! =(
+--------------------------------------------------------
 --  DDL for Type GEOMETRY
 --------------------------------------------------------
 
@@ -275,7 +271,7 @@ end;
 
 /*
 
-     |    El modelo de rectâ€¡ngulo se construye
+     |    El modelo de rect‡ngulo se construye
    4 -    a partir de dos puntos (UL,LR) = Upper Left, Lower Right      
      |
    3 -     UL-------+     
@@ -308,12 +304,12 @@ end;
              upper_left point,
              lower_right point) return self as result,         
     
-    /* retorna verdadero si el punto x1 esta dentro del rectâ€¡ngulo
+    /* retorna verdadero si el punto x1 esta dentro del rect‡ngulo
        actual, incluyendo el borde */
     member function inside(x1 point) return boolean,
     
     /* retorna el rectangulo que describe la interseccion entre
-       self y r2.  Si no hay intersecciâ€”n devuelve
+       self y r2.  Si no hay intersecci—n devuelve
        un rectangulo [(0,0),(0,0)] */
     member function overlap(r2 rectangle) return rectangle
     
@@ -418,7 +414,7 @@ end;
    /* agregar aqui las variables de instancia que 
       considere necesarias */
       
-   dummy number, -- eliminar este, sâ€”lo es un ejemplo
+   dummy number, -- eliminar este, s—lo es un ejemplo
    
    constructor function r_tree (self in out nocopy r_tree) return self as result,
    
