@@ -3,7 +3,22 @@
 --  Bases de Datos 2
 --  ECCI UCR 
 --------------------------------------------------------
+CREATE OR REPLACE TYPE "NODE";
 
+/
+
+CREATE OR REPLACE TYPE "NODE_LIST" as table of REF NODE;
+/
+
+CREATE OR REPLACE TYPE "NODE" as object (
+    node_geometry GEOMETRY,
+    list_of_nodes NODE_LIST
+    
+    member function node(g geometry, 
+);
+/
+
+CREATE OR REPLACE TYPE BODY "NODE" as
 --------------------------------------------------------
 --  DDL for Type GEOMETRY
 --------------------------------------------------------
