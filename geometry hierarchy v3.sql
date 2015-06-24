@@ -1,7 +1,7 @@
 --------------------------------------------------------
 --  Richard Delgado
-Ñ-  Bases de Datos 2
-Ñ-  ECCI UCR 
+--  Bases de Datos 2
+--  ECCI UCR 
 --------------------------------------------------------
 
 --------------------------------------------------------
@@ -271,7 +271,7 @@ end;
 
 /*
 
-     |    El modelo de rect‡ngulo se construye
+     |    El modelo de rectï¿½ngulo se construye
    4 -    a partir de dos puntos (UL,LR) = Upper Left, Lower Right      
      |
    3 -     UL-------+     
@@ -304,12 +304,12 @@ end;
              upper_left point,
              lower_right point) return self as result,         
     
-    /* retorna verdadero si el punto x1 esta dentro del rect‡ngulo
+    /* retorna verdadero si el punto x1 esta dentro del rectï¿½ngulo
        actual, incluyendo el borde */
     member function inside(x1 point) return boolean,
     
     /* retorna el rectangulo que describe la interseccion entre
-       self y r2.  Si no hay intersecci—n devuelve
+       self y r2.  Si no hay intersecciï¿½n devuelve
        un rectangulo [(0,0),(0,0)] */
     member function overlap(r2 rectangle) return rectangle
     
@@ -414,7 +414,7 @@ end;
    /* agregar aqui las variables de instancia que 
       considere necesarias */
       
-   dummy number, -- eliminar este, s—lo es un ejemplo
+   dummy number, -- eliminar este, sï¿½lo es un ejemplo
    
    constructor function r_tree (self in out nocopy r_tree) return self as result,
    
