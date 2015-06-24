@@ -8,7 +8,7 @@
 --  DDL for Type GEOMETRY
 --------------------------------------------------------
 
-  CREATE OR REPLACE TYPE "GEOMETRY" as object (
+CREATE OR REPLACE TYPE "GEOMETRY" as object (
   
     label varchar2(20),
     
@@ -16,7 +16,7 @@
     
     member function area return real
     
-) not INSTANTIABLE not final
+) not INSTANTIABLE not final;
     
     
 /
@@ -39,21 +39,21 @@ end;
 --  DDL for Type GEOMETRY_LIST
 --------------------------------------------------------
 
-  CREATE OR REPLACE TYPE "GEOMETRY_LIST" as table of geometry
+CREATE OR REPLACE TYPE "GEOMETRY_LIST" as table of geometry;
 
 /
 --------------------------------------------------------
 --  DDL for Type LINE_TYPE
 --------------------------------------------------------
 
-  CREATE OR REPLACE TYPE "LINE_TYPE" as table of varchar2(100)
+CREATE OR REPLACE TYPE "LINE_TYPE" as table of varchar2(100);
 
 /
 --------------------------------------------------------
 --  DDL for Type PLOT
 --------------------------------------------------------
 
-  CREATE OR REPLACE TYPE "PLOT" as object (
+CREATE OR REPLACE TYPE "PLOT" as object (
 
   max_x int,
   max_y int,
@@ -71,7 +71,7 @@ end;
  
   member procedure display
 
-)
+);
 /
 CREATE OR REPLACE TYPE BODY "PLOT" as
 
@@ -202,7 +202,7 @@ end;
 --  DDL for Type POINT
 --------------------------------------------------------
 
-  CREATE OR REPLACE TYPE "POINT" under geometry (
+CREATE OR REPLACE TYPE "POINT" under geometry (
    x real,
    y real,
    
@@ -215,7 +215,7 @@ end;
    constructor function point(self in out nocopy point,
           x real, y real) return self as result
    
-)
+);
 /
 CREATE OR REPLACE TYPE BODY "POINT" as
 
@@ -267,7 +267,7 @@ end;
 --  DDL for Type RECTANGLE
 --------------------------------------------------------
 
-  CREATE OR REPLACE TYPE "RECTANGLE" under geometry (
+CREATE OR REPLACE TYPE "RECTANGLE" under geometry (
 
 /*
 
@@ -313,7 +313,7 @@ end;
        un rectangulo [(0,0),(0,0)] */
     member function overlap(r2 rectangle) return rectangle
     
-)
+);
 /
 CREATE OR REPLACE TYPE BODY "RECTANGLE" as
 
@@ -409,7 +409,7 @@ end;
 --  DDL for Type R_TREE
 --------------------------------------------------------
 
-  CREATE OR REPLACE TYPE "R_TREE" as object (
+CREATE OR REPLACE TYPE "R_TREE" as object (
 
    /* agregar aqui las variables de instancia que 
       considere necesarias */
@@ -429,14 +429,14 @@ end;
    member function nn_query(query_point point, num_results number := 1) return geometry_list,
    
    member function get_MBR_list return geometry_list
-)   
+);   
 
 /
 --------------------------------------------------------
 --  DDL for Function GET_MAX
 --------------------------------------------------------
 
-  CREATE OR REPLACE FUNCTION "GET_MAX" (a in real, b in real 
+CREATE OR REPLACE FUNCTION "GET_MAX" (a in real, b in real 
        -- mode 0 = max, 1 = min 
 ) return number as 
 begin
@@ -449,7 +449,7 @@ end get_max;
 --  DDL for Function GET_MIN
 --------------------------------------------------------
 
-  CREATE OR REPLACE FUNCTION "GET_MIN" (a in real, b in real 
+CREATE OR REPLACE FUNCTION "GET_MIN" (a in real, b in real 
        -- mode 0 = max, 1 = min 
 ) return number as 
 begin
@@ -462,7 +462,7 @@ end get_min;
 --  DDL for Function MIN_MAX
 --------------------------------------------------------
 
-  CREATE OR REPLACE FUNCTION "MIN_MAX" (a in real, b in real, 
+CREATE OR REPLACE FUNCTION "MIN_MAX" (a in real, b in real, 
                                     pmode int := 0 -- mode 0 = max, 1 = min 
 ) return number as 
   v_min real;
@@ -488,7 +488,7 @@ end min_max;
 --  DDL for Function TRANSPARENT_REPLACE
 --------------------------------------------------------
 
-  CREATE OR REPLACE FUNCTION "TRANSPARENT_REPLACE" 
+CREATE OR REPLACE FUNCTION "TRANSPARENT_REPLACE" 
 (string in varchar2, segment in varchar2, startpos in int := 1)  return varchar2 as
    v_head varchar2(2000) := substr(string,1,startpos-1);
    v_tail varchar2(2000) := substr(string,startpos+length(segment));
@@ -513,7 +513,7 @@ end transparent_replace;
 --------------------------------------------------------
 set define off;
 
-  CREATE OR REPLACE PROCEDURE "PRINT" (line varchar2)is
+CREATE OR REPLACE PROCEDURE "PRINT" (line varchar2)is
 begin
    dbms_output.put_line(line);
 end;
