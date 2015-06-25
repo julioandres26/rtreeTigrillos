@@ -26,6 +26,9 @@ CREATE OR REPLACE TYPE BODY "NODE" AS                         -- Body de objeto 
   MEMBER FUNCTION list_status() RETURN INTEGER IS
   BEGIN
   
+  
+  
+  list_of_nodes.COUNT 
   -- recorre list_of_nodes y cuenta cuantos tiene
   
   
