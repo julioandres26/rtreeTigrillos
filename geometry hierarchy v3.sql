@@ -3,42 +3,104 @@
 --  Bases de Datos 2
 --  ECCI UCR 
 --------------------------------------------------------
-CREATE OR REPLACE TYPE "NODE";
-
-/
-
-CREATE OR REPLACE TYPE "NODE_LIST" as table of REF NODE;
-/
-
-CREATE OR REPLACE TYPE "NODE" AS OBJECT (                     -- Interface de objeto NODE
-    node_geometry GEOMETRY,
-    list_of_nodes NODE_LIST
-    
-    MEMBER FUNCTION list_status() RETURN INTEGER              -- Funcion que retorna la cantidad de nodos en la lista
-    
-    
---    member function node(g geometry, 
-);
-/
-
-CREATE OR REPLACE TYPE BODY "NODE" AS                         -- Body de objeto NODE
-
-  MEMBER FUNCTION list_status() RETURN INTEGER IS
-  BEGIN
-  
-  
-  
-  list_of_nodes.COUNT 
-  -- recorre list_of_nodes y cuenta cuantos tiene
-  
-  
-  END list_status;
-
-END;
 
 --------------------------------------------------------
 --  DDL for Type GEOMETRY
 --------------------------------------------------------
+
+create or replace type container as object (
+   
+   elem geometry,
+   
+   member function display return varchar2
+   
+) not final;
+/
+
+create or replace type body container as
+
+member function display return varchar2 is
+  begin
+    return(elem.display);
+  end display;
+
+end;
+/
+
+create or replace type entry_list as table of container;
+/
+create or replace type node under container (
+ 
+    fanout int,
+    entries entry_list,
+   
+    member function add_element(self in out nocopy node, c container) return boolean, 
+    
+    overriding member function display return varchar2,
+    
+    constructor function node (self in out nocopy node,
+        fanout int) return self as result
+);
+/
+
+create or replace type body node as
+
+member function add_element(self in out nocopy node, c container) return boolean as
+    i int := entries.count;
+    new_node node;
+    temp_elem geometry;
+    tmp boolean;
+  begin
+    if i < fanout then
+       entries.extend;
+       entries(i+1) := c;
+       return true;
+    else
+       -- check for the candidate to expand.
+       i := 1;
+       while i <= entries.count loop
+           exit when not(entries(i) is of (node));
+           i := i + 1;
+       end loop;
+       
+       if i <= fanout then
+          --print('found a container, index='||i);
+          new_node := node(self.fanout);
+          tmp := new_node.add_element(entries(i));
+          tmp := new_node.add_element(c);
+          
+          entries(i) := new_node;
+          
+          return true;
+       else
+          return false; 
+       end if; 
+    end if;
+  end add_element;
+  
+
+overriding member function display return varchar2 as
+    tmp varchar2(4000);
+  begin
+    for i in 1..entries.count loop
+       tmp := tmp || entries(i).display || ':';
+    end loop;
+    tmp := substr(tmp,1,length(tmp)-1);
+    return '['||tmp||']';
+  end display;
+
+constructor function node (self in out nocopy node,
+        fanout int) return self as result as
+  begin
+    self.fanout := fanout;
+    self.entries := entry_list();
+    return;
+  end node;
+
+end;
+/
+
+
 
 CREATE OR REPLACE TYPE "GEOMETRY" as object (
   
