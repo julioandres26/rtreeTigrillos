@@ -45,27 +45,30 @@ create or replace type node under container (
 
 create or replace type body node as
 
+  -- Funcion encargada de agregar elementos al nodo regulado por el Fanout
+
 member function add_element(self in out nocopy node, c container) return boolean as
-    i int := entries.count;
+
+    i int := entries.count;                 -- Obtiene el numero de elementos internos del nodo ya agregados
     new_node node;
-    temp_elem geometry;
+    temp_elem geometry;                     -- Elementos temporales
     tmp boolean;
   begin
-    if i < fanout then
+    if i < fanout then                      -- Aun hay espacio en el nodo
        entries.extend;
        entries(i+1) := c;
-       return true;
+       return true;                         -- Inserta el elemento dentro del nodo de forma exitosa
     else
-       -- check for the candidate to expand.
+       -- check for the candidate to expand.            -- El nodo esta lleno, debe buscar otro nodo para agregar el elemento
        i := 1;
        while i <= entries.count loop
-           exit when not(entries(i) is of (node));
+           exit when not(entries(i) is of (node));      -- Se busca un elemento que no sea nodo 
            i := i + 1;
        end loop;
        
-       if i <= fanout then
+       if i <= fanout then                              
           --print('found a container, index='||i);
-          new_node := node(self.fanout);
+          new_node := node(self.fanout);                -- 
           tmp := new_node.add_element(entries(i));
           tmp := new_node.add_element(c);
           
@@ -98,7 +101,6 @@ constructor function node (self in out nocopy node,
   end node;
 
 end;
-/
 
 
 
