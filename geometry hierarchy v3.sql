@@ -506,6 +506,8 @@ CREATE OR REPLACE TYPE "R_TREE" as object (
    
    --member procedure insert_element(apoint point),
    
+   member function is_leaf(nodeToTest node) return boolean,
+   
    member function choose_leaf(startNode node, apoint IN point) return container
    
    --member procedure remove_element(apoint point),
@@ -529,6 +531,18 @@ constructor function r_tree(self in out nocopy r_tree, fanout int) return self a
 --  begin
 --    
 --  end insert_element;
+
+member function is_leaf(nodeToTest node) return boolean is
+  dummy int;
+  begin
+    dummy := node.fanout;
+    return false;
+  EXCEPTION
+    WHEN no_data_found THEN
+      return true;
+    WHEN others THEN
+      return true;
+  end is_leaf;
   
 member function choose_leaf(startNode node, apoint IN point) return container is
   
@@ -541,7 +555,7 @@ member function choose_leaf(startNode node, apoint IN point) return container is
   thisminimumDistance int;
   
   begin
-    IF startNode != node THEN
+    IF is_leaf(startNode) THEN
       return startNode;
     ELSE
       currentCount := startNode.entries.COUNT;
@@ -560,7 +574,7 @@ member function choose_leaf(startNode node, apoint IN point) return container is
         END IF;
       END LOOP;
       
-      choose_leaf(levelDownNode);
+      choose_leaf(levelDownNode, apoint);
     end IF;
   end choose_leaf;
   
