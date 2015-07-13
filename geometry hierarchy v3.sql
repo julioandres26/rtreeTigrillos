@@ -498,25 +498,75 @@ CREATE OR REPLACE TYPE "R_TREE" as object (
 
    /* agregar aqui las variables de instancia que 
       considere necesarias */
-      
-   dummy number, -- eliminar este, s�lo es un ejemplo
+   root node,
    
-   constructor function r_tree (self in out nocopy r_tree) return self as result,
+   constructor function r_tree (self in out nocopy r_tree, fanout int) return self as result,
    
-   member procedure index_reset,
+   --member procedure index_reset,
    
-   member procedure insert_element(apoint point),
+   --member procedure insert_element(apoint point),
    
-   member procedure remove_element(apoint point),
+   member function choose_leaf(startNode node, apoint IN point) return container
    
-   member function range_query(query_rect rectangle) return geometry_list,
+   --member procedure remove_element(apoint point),
    
-   member function nn_query(query_point point, num_results number := 1) return geometry_list,
-   
-   member function get_MBR_list return geometry_list
+   --member function range_query(query_rect rectangle) return geometry_list,
+     
+   --member function get_MBR_list return geometry_list
 );   
 
 /
+
+create or replace type body r_tree as
+
+constructor function r_tree(self in out nocopy r_tree, fanout int) return self as result is
+  begin
+    root := node(fanout);
+    return;
+  end r_tree;
+
+--member procedure insert_element(apoint point) is
+--  begin
+--    
+--  end insert_element;
+  
+member function choose_leaf(startNode node, apoint IN point) return container is
+  
+  currentCount int;
+  levelDownNode node;
+  mediumPoint point;
+  minimumDistance int;
+  thislevelDownNode node;
+  thisMediumPoint point;
+  thisminimumDistance int;
+  
+  begin
+    IF startNode != node THEN
+      return startNode;
+    ELSE
+      currentCount := startNode.entries.COUNT;
+      levelDownNode := startNode.entries(startNode.entries.FIRST);
+      mediumPoint := point((levelDownNode.width/2),(levelDownNode.height/2));
+      minimumDistance := apoint.distance(mediumPoint);
+      
+      FOR i IN startNode.entries.NEXT(startNode.entries.FIRST) .. currentCount
+      LOOP
+        thislevelDownNode := startNode.entries(i);
+        thisMediumPoint := point((thislevelDownNode.width/2),(thislevelDownNode.height/2));
+        thisminimumDistance := apoint.distance(thisMediumPoint);
+        IF thisMinimumDistance < minimumDistance THEN
+          minimumDistance := thisMinimumDistance;
+          levelDownNode := thislevelDownNode;
+        END IF;
+      END LOOP;
+      
+      choose_leaf(levelDownNode);
+    end IF;
+  end choose_leaf;
+  
+end;
+/
+
 --------------------------------------------------------
 --  DDL for Function GET_MAX
 --------------------------------------------------------
