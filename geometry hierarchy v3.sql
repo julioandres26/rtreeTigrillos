@@ -4,10 +4,6 @@
 --  ECCI UCR 
 --------------------------------------------------------
 
---------------------------------------------------------
---  DDL for Type GEOMETRY
---------------------------------------------------------
-
 create or replace type container as object (
    
    elem geometry,
@@ -103,6 +99,9 @@ constructor function node (self in out nocopy node,
 end;
 
 
+--------------------------------------------------------
+--  DDL for Type GEOMETRY
+--------------------------------------------------------
 
 CREATE OR REPLACE TYPE "GEOMETRY" as object (
   
