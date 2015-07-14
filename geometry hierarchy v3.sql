@@ -3,7 +3,20 @@
 --  Bases de Datos 2
 --  ECCI UCR 
 --------------------------------------------------------
-
+--  ESTUDIANTES
+--  Julio Calderón    B11226
+--  Ulises González   B12989
+--  José Pablo Ureña  B16692
+--------------------------------------------------------
+--  ERRORES HASTA EL 13/07/15
+--  Error de compilación al crear el cuerpo del r_tree
+    --  'Expression is of wrong type'
+    --  Causa: no tenemos idea, al hacer doble click en el error
+    --         nos lleva al body del nodo pero nada más.
+    
+--------------------------------------------------------
+--  DDL for Type CONTAINER
+--------------------------------------------------------
 create or replace type container as object (
    
    elem geometry,
@@ -28,6 +41,10 @@ end;
 create or replace type entry_list as table of container;
 
 /
+
+--------------------------------------------------------
+--  DDL for Type NODE
+--------------------------------------------------------
 
 create or replace type node under container (
  
@@ -496,19 +513,18 @@ end;
 
 CREATE OR REPLACE TYPE "R_TREE" as object (
 
-   /* agregar aqui las variables de instancia que 
-      considere necesarias */
    root node,
+   globalFanout int,
    
    constructor function r_tree (self in out nocopy r_tree, fanout int) return self as result,
    
-   --member procedure index_reset,
+   member procedure index_reset,
    
    --member procedure insert_element(apoint point),
    
    --member function is_leaf(nodeToTest node) return boolean,
    
-   member function create_rectangle(introNode node) return rectangle,
+   member procedure split_node(nodeToSplit node),
    
    member function choose_leaf(startNode node, apoint point) return node
    
@@ -521,29 +537,117 @@ CREATE OR REPLACE TYPE "R_TREE" as object (
 
 /
 
+--------------------------------------------------------
+--  BODY for Type R_TREE
+--------------------------------------------------------
 create or replace type body r_tree as
 
+  -- Constructor del R_TREE. Recibe un entero como fanout, o nada
+  -- para que el árbol se cree con el fanout por defecto.
 constructor function r_tree(self in out nocopy r_tree, fanout int) return self as result as
   begin
+    -- Si no se envia un fanout, se crea el árbol con fanout por defecto (4).
+    IF fanout = null THEN
+      root := node(4);
+    ELSE
+    -- Si se pasa un int como parámetro, ese va a ser el fanout.
     root := node(fanout);
+    END IF;
     return;
   end r_tree;
+  
+  -- Elimina todos los elementos del árbol.
+member procedure index_reset as
+  begin
+    -- Llamamos al método DELETE de la nested table para dejarla vacía y volver
+    -- al estado original después del constructor.
+    root.entries.DELETE;
+  end index_reset;
 
+  -- Inserta un elemento nuevo en el árbol.
 member procedure insert_element(apoint point) is
+  newNode node := node(
+  
   begin
     
   end insert_element;
-
-member function create_rectangle(introNode node) return rectangle as
-  resultRectangle rectangle;
-  begin
-    FOR i IN introNode.entries.FIRST .. introNode.entries.COUNT
-    LOOP
-      FOR j IN introNode.entries
-    END LOOP;
-  end create_rectangle;
-
   
+  -- Divide el nodo cuando el número de nodos dentro de un nodo es igual al
+  -- fanout. Recibe el nodo a dividir y el punto que causa que se tenga que
+  -- dividir.
+member procedure split_node(nodeToSplit node, apoint point) as
+
+  maximumDistanceBetweenAllPoints int;
+  thisDistance int;
+  pointA point;
+  pointB point;
+  rectangleA rectangle;
+  rectangleB rectangle;
+  minimumDistanceBewteenPointsA int;
+  minimumDistanceBewteenPointsB int;
+  type pointList is table of point;
+  listA := pointList();
+  listB := pointList();
+  
+  begin
+  -- Chequea la distancia máxima entre el nodo que se intenta agregar
+  -- y todos los demás en la lista.
+  maximumDistanceBetweenAllPoints := 0;
+  FOR i IN nodeToSplit.entries.FIRST .. nodeToSplit.entries.COUNT
+  LOOP
+    thisDistance := apoint.distance(nodeToSplit.entries(i).elem);
+    IF thisDistance > maximumDistanceBetweenAllPoints THEN
+      maximumDistanceBetweenAllPoints := thisDistance;
+      pointA := apoint;
+      pointB := nodeToSplit.entries(i).elem;
+    END IF;
+  END LOOP;
+  -- Chequea las distancia máximas de los nodos 'viejos' por si alguna
+  -- es aún mayor a la mayor del FOR anterior (todos se chequean con todos).
+  FOR i IN nodeToSplit.entries.FIRST .. nodeToSplit.entries.COUNT
+  LOOP
+    FOR j IN nodeToSplit.entries.FIRST .. nodeToSplit.entries.COUNT
+    LOOP
+      thisDistance := nodeToSplit.entries(i).elem.distance(nodeToSplit.entries(j).elem);
+      IF thisDistance > maximumDistanceBetweenAllPoints THEN
+      maximumDistanceBetweenAllPoints := thisDistance;
+      pointA := nodeToSplit.entries(i).elem;
+      pointB := nodeToSplit.entries(j).elem;
+    END IF;
+    END LOOP;
+  END LOOP;
+    -- Una vez definido el rectángulo más grande que encapsula todos los puntos,
+    -- se agregan los puntos restantes a alguna de las listas de los puntos que componen
+    -- el mismo.
+    FOR i IN nodeToSplit.entries.FIRST .. nodeToSplit.entries.COUNT
+    LOOP
+      minimumDistanceBewteenPointsA := pointA.distance(nodeToSplit.entries(i).elem;
+      minimumDistanceBewteenPointsB := pointB.distance(nodeToSplit.entries(i).elem;
+      IF minimumDistanceBewteenPointsA < minimumDistanceBewteenPointsB THEN
+        INSERT INTO listA VALUES (pointA);
+      ELSE
+        INSERT INTO listB VALUES (pointB);
+      END IF;
+    END LOOP;
+    
+    
+  end split_node;
+
+--member function is_leaf(nodeToTest node) return boolean is
+--  dummy int;
+--  begin
+--    dummy := node.fanout;
+--    return false;
+--  EXCEPTION
+--    WHEN no_data_found THEN
+--      return true;
+--    WHEN others THEN
+--      return true;
+--  end is_leaf;
+  
+  -- Escoge la hoja donde se va a meter el nuevo punto y devuelve ese nodo (hoja)
+  -- al insert. Recibe el nodo raíz (y los nodos siguientes al avanzar recursivamente),
+  -- y el punto a agregar (para calcular distancias.
 member function choose_leaf(startNode node, apoint point) return node as
   
   currentCount int;
@@ -556,17 +660,25 @@ member function choose_leaf(startNode node, apoint point) return node as
   returnNode node;
   
   begin
-    IF startNode.entries.COUNT = 0 THEN
+    -- Chequea si el nodo actual no tiene hijos o tiene al menos uno (y ese es un punto),
+    -- lo que significa que lo devuelve porque encontró una hoja.
+    IF startNode.entries.COUNT = 0 OR startNode.entries(startNode.entries.FIRST) is a point THEN
       return startNode;
     ELSE
+      -- Define como distancia más corta inicial al primer nodo en la lista.
       currentCount := startNode.entries.COUNT;
       levelDownNode := startNode.entries(startNode.entries.FIRST);
       mediumPoint := point((levelDownNode.elem.width()/2),(levelDownNode.elem.height()/2));
       minimumDistance := apoint.distance(mediumPoint);
-      
+      -- Compara a ver si los siguientes nodos tienen una distancia menor.
       FOR i IN startNode.entries.NEXT(startNode.entries.FIRST) .. currentCount
       LOOP
         thislevelDownNode := startNode.entries(i);
+        -- REVISAR: si la ejecución se va por este ELSE, no estamos en una hoja entonces debería haber
+        -- un rectángulo al cual poder sacarle sus 'coordenadas' para sacar distancias mínimas.
+        -- El problema es que el compilador dice que WIDTH y HEIGHT deben estar declaradas porque piensa
+        -- que estamos accesando atributos del nodo, y no de la geometría asociada al mismo.
+        -- POR ARREGLAR.
         thisMediumPoint := point((levelDownNode.elem.width()/2),(thislevelDownNode.elem.height()/2));
         thisminimumDistance := apoint.distance(thisMediumPoint);
         IF thisMinimumDistance < minimumDistance THEN
@@ -574,6 +686,8 @@ member function choose_leaf(startNode node, apoint point) return node as
           levelDownNode := thislevelDownNode;
         END IF;
       END LOOP;
+      -- Una vez encontrado el nodo con la menor distancia al punto, se llama recursivamente
+      -- con el nuevo nodo para bajar un nivel.
       returnNode := choose_leaf(levelDownNode, apoint);
       return returnNode;
     END IF;
