@@ -520,15 +520,17 @@ CREATE OR REPLACE TYPE "R_TREE" as object (
    
    member procedure index_reset,
    
-   --member procedure insert_element(apoint point),
+   member procedure insert_element(apoint point),
    
    --member function is_leaf(nodeToTest node) return boolean,
    
    member procedure split_node(nodeToSplit node),
    
-   member function choose_leaf(startNode node, apoint point) return node
+   member function choose_leaf(startNode node, apoint point) return node,
    
-   --member procedure remove_element(apoint point),
+   member procedure remove_element(apoint point),
+   
+   member function father_of_deceased(startNode node, apoint point) return node
    
    --member function range_query(query_rect rectangle) return geometry_list,
      
@@ -692,6 +694,59 @@ member function choose_leaf(startNode node, apoint point) return node as
       return returnNode;
     END IF;
   end choose_leaf;
+  
+  
+  -- Borra un elemento del árbol.
+  member procedure remove_element(apoint point) as
+  nodeToWorkOn node;
+  
+  begin
+    -- Buscamos al papá del punto que vamos a eliminar.
+    nodeToWorkOn := father_of_deceased(root, apoint);
+    FOR i IN nodeToWorkOn.entries.FIRST .. nodeToWorkOn.entries.COUNT
+    LOOP
+        -- Si encontramos el lugar de la nested table donde está el punto,
+        -- lo borramos.
+        IF nodeToWorkOn.entries(i).elem = apoint THEN
+          nodeToWorkOn.entries.DELETE(i);
+        END IF;
+        -- Revisamos si el nodo quedó desestabilizado con el borrado.
+        IF nodeToWorkOn.entries.COUNT < (fanout/2) THEN
+          -- Volvemos a ingresar los puntos que quedaron solos como si fueran nuevos.
+          FOR i IN nodeToWorkOn.entries.FIRST .. nodeToWorkOn.entries.COUNT
+          LOOP
+            insert_element(nodeToWorkOn.entries(i).elem;
+          END LOOP;
+        END IF;
+    END LOOP;
+  end remove_element;
+  
+  -- Busca el papá del punto que queremos eliminar.
+  member function father_of_deceased(startNode node, apoint point) return node as
+  
+  levelDownNode node;
+  
+  begin
+    FOR i IN startNode.entries.FIRST .. startNode.entries.LAST
+    LOOP
+      -- Si ya estamos en el papá buscado, lo devolvemos al método REMOVE.
+      IF startNode.entries(i).elem = point THEN
+        return startNode;
+      ELSE
+        -- Si no lo hemos encontrado, busca dentro de quién está y baja un nivel.
+        -- Luego se llama recursivamente para encontrar al papá.
+        FOR i IN startNode.entries.FIRST .. startNode.entries.LAST
+        LOOP
+          IF startNode.entries(i).elem.inside(apoint) THEN
+            levelDownNode := startNode.entries(i);
+          END IF;
+        END LOOP;
+        -- Bajamos un nivel recursivamente.
+        levelDownNode := father_of_deceased(startNode, apoint);
+        return levelDownNode;
+    END LOOP;
+  end father_of_deceased;
+  
   
 end;
 /
