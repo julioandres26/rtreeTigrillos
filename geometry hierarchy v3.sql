@@ -7,12 +7,20 @@
 --  Julio Calderón    B11226
 --  Ulises González   B12989
 --  José Pablo Ureña  B16692
---------------------------------------------------------
+---------------------------------------------------------------------------
 --  ERRORES HASTA EL 13/07/15
 --  Error de compilación al crear el cuerpo del r_tree
-    --  'Expression is of wrong type'
+    -- 'Expression is of wrong type'
     --  Causa: no tenemos idea, al hacer doble click en el error
     --         nos lleva al body del nodo pero nada más.
+-- Error al intentar accesar los métodos width() & height ()
+    -- El compilador cree que estamos accesando puntos cuando nos referimos
+    -- a la geometría del nodo, cuando realmente en ese punto ya deben ser
+    -- rectángulos y esos métodos existen. QUEDA POR REVISAR.
+---------------------------------------------------------------------------  
+    
+    
+    
     
 --------------------------------------------------------
 --  DDL for Type CONTAINER
@@ -51,7 +59,7 @@ create or replace type node under container (
     fanout int,
     entries entry_list,
    
-    member function add_element(self in out nocopy node, c container) return boolean, 
+--    member function add_element(self in out nocopy node, c container) return boolean, 
     
     overriding member function display return varchar2,
     
@@ -63,38 +71,38 @@ create or replace type node under container (
 
 create or replace type body node as
 
-member function add_element(self in out nocopy node, c container) return boolean as
-    i int := entries.count;
-    new_node node;
-    temp_elem geometry;
-    tmp boolean;
-  begin
-    if i < fanout then
-       entries.extend;
-       entries(i+1) := c;
-       return true;
-    else
-       -- check for the candidate to expand.
-       i := 1;
-       while i <= entries.count loop
-           exit when not(entries(i) is of (node));
-           i := i + 1;
-       end loop;
-       
-       if i <= fanout then
-          --print('found a container, index='||i);
-          new_node := node(self.fanout);
-          tmp := new_node.add_element(entries(i));
-          tmp := new_node.add_element(c);
-          
-          entries(i) := new_node;
-          
-          return true;
-       else
-          return false; 
-       end if; 
-    end if;
-  end add_element;
+--member function add_element(self in out nocopy node, c container) return boolean as
+--    i int := entries.count;
+--    new_node node;
+--    temp_elem geometry;
+--    tmp boolean;
+--  begin
+--    if i < fanout then
+--       entries.extend;
+--       entries(i+1) := c;
+--       return true;
+--    else
+--       -- check for the candidate to expand.
+--       i := 1;
+--       while i <= entries.count loop
+--           exit when not(entries(i) is of (node));
+--           i := i + 1;
+--       end loop;
+--       
+--       if i <= fanout then
+--          --print('found a container, index='||i);
+--          new_node := node(self.fanout);
+--          tmp := new_node.add_element(entries(i));
+--          tmp := new_node.add_element(c);
+--          
+--          entries(i) := new_node;
+--          
+--          return true;
+--       else
+--          return false; 
+--       end if; 
+--    end if;
+--  end add_element;
   
 
 overriding member function display return varchar2 as
