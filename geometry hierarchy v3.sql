@@ -13,7 +13,7 @@
     -- 'Expression is of wrong type'
     --  Causa: no tenemos idea, al hacer doble click en el error
     --         nos lleva al body del nodo pero nada más.
--- Error al intentar accesar los métodos width() & height ()
+-- Error al intentar accesar los métodos width() & height()
     -- El compilador cree que estamos accesando puntos cuando nos referimos
     -- a la geometría del nodo, cuando realmente en ese punto ya deben ser
     -- rectángulos y esos métodos existen. QUEDA POR REVISAR.
@@ -538,11 +538,11 @@ CREATE OR REPLACE TYPE "R_TREE" as object (
    
    member procedure remove_element(apoint point),
    
-   member function father_of_deceased(startNode node, apoint point) return node
+   member function father_of_deceased(startNode node, apoint point) return node,
    
-   --member function range_query(query_rect rectangle) return geometry_list,
+   member function range_query(query_rect rectangle) return geometry_list,
      
-   --member function get_MBR_list return geometry_list
+   member function get_MBR_list return geometry_list
 );   
 
 /
@@ -649,9 +649,9 @@ member procedure split_node(nodeToSplit node, apoint point) as
       minDistBewteenPointsA := pointA.distance(nodeToSplit.entries(i).elem);
       minDistBewteenPointsB := pointB.distance(nodeToSplit.entries(i).elem);
       IF minDistBewteenPointsA < minDistBewteenPointsB THEN
-        INSERT INTO listA VALUES (pointA);
+        INSERT INTO listA VALUES (nodeToSplit.entries(i).elem);
       ELSE
-        INSERT INTO listB VALUES (pointB);
+        INSERT INTO listB VALUES (nodeToSplit.entries(i).elem);
       END IF;
     END LOOP;
     
@@ -771,6 +771,21 @@ member function choose_leaf(startNode node, apoint point) return node as
     END LOOP;
   end father_of_deceased;
   
+  -- IMPLEMENTACIÓN PARCIAL
+  -- Devuelve una lista de todos los puntos en un MBR.
+member function range_query(query_rect rectangle) return geometry_list as
+  result_list geometry_list;
+  
+  begin
+    
+  end range_query;
+  
+  -- IMPLEMENTACIÓN PARCIAL
+  -- Devuelve una lista con todas las geometrías en el árbol.
+member function get_MBR_list return geometry_list
+  begin
+  
+  end get_MBR_list;
   
 end;
 /
