@@ -546,14 +546,16 @@ create or replace type body r_tree as
 
   -- Constructor del R_TREE. Recibe un entero como fanout, o nada
   -- para que el árbol se cree con el fanout por defecto.
-constructor function r_tree(self in out nocopy r_tree, fanout int) return self as result as
+constructor function r_tree(self in out nocopy r_tree, newFanout int) return self as result as
   begin
     -- Si no se envia un fanout, se crea el árbol con fanout por defecto (4).
-    IF fanout = null THEN
+    IF newFanout = null THEN
       root := node(4);
+      globalFanout := 4;
     ELSE
     -- Si se pasa un int como parámetro, ese va a ser el fanout.
-    root := node(fanout);
+      root := node(fanout);
+      globalFanout := fanout;
     END IF;
     return;
   end r_tree;
@@ -568,10 +570,23 @@ member procedure index_reset as
 
   -- Inserta un elemento nuevo en el árbol.
 member procedure insert_element(apoint point) is
-  newNode node := node(
-  
+  newNode node := node(globalFanout);
+  chosenNode node;
   begin
-    
+    -- Asignamos el nuevo punto al nodo nuevo que creamos.
+    node.elem := apoint;
+    chosenNode := choose_leaf(root, apoint);
+    -- Si ya el nodo que choose_leaf nos dio está lleno, entonces llamamos
+    -- a split_node para que lo divida.
+    IF chosenNode.entries.COUNT = globalFanout THEN
+      split_node(chosenNode, apoint);
+    ELSE
+      -- Si aún queda campo en el nodo escogido para la inserción, extendemos
+      -- la lista de entries en 1 y metemos ahí el nodo con el punto que 
+      -- queremos agregar.
+      chosenNode.entries.EXTEND;
+      chosenNode.entries(chosenNode.entries.LAST) := newNode;
+    END IF;
   end insert_element;
   
   -- Divide el nodo cuando el número de nodos dentro de un nodo es igual al
@@ -579,27 +594,27 @@ member procedure insert_element(apoint point) is
   -- dividir.
 member procedure split_node(nodeToSplit node, apoint point) as
 
-  maximumDistanceBetweenAllPoints int;
+  maxDistBetweenAllPoints int;
   thisDistance int;
   pointA point;
   pointB point;
   rectangleA rectangle;
   rectangleB rectangle;
-  minimumDistanceBewteenPointsA int;
-  minimumDistanceBewteenPointsB int;
+  minDistBewteenPointsA int;
+  minDistBewteenPointsB int;
   type pointList is table of point;
-  listA := pointList();
-  listB := pointList();
+  listA pointList := pointList();
+  listB pointList := pointList();
   
   begin
   -- Chequea la distancia máxima entre el nodo que se intenta agregar
   -- y todos los demás en la lista.
-  maximumDistanceBetweenAllPoints := 0;
+  maxDistBetweenAllPoints := 0;
   FOR i IN nodeToSplit.entries.FIRST .. nodeToSplit.entries.COUNT
   LOOP
     thisDistance := apoint.distance(nodeToSplit.entries(i).elem);
-    IF thisDistance > maximumDistanceBetweenAllPoints THEN
-      maximumDistanceBetweenAllPoints := thisDistance;
+    IF thisDistance > maxDistBetweenAllPoints THEN
+      maxDistBetweenAllPoints := thisDistance;
       pointA := apoint;
       pointB := nodeToSplit.entries(i).elem;
     END IF;
@@ -611,8 +626,8 @@ member procedure split_node(nodeToSplit node, apoint point) as
     FOR j IN nodeToSplit.entries.FIRST .. nodeToSplit.entries.COUNT
     LOOP
       thisDistance := nodeToSplit.entries(i).elem.distance(nodeToSplit.entries(j).elem);
-      IF thisDistance > maximumDistanceBetweenAllPoints THEN
-      maximumDistanceBetweenAllPoints := thisDistance;
+      IF thisDistance > maxDistBetweenAllPoints THEN
+      maxDistBetweenAllPoints := thisDistance;
       pointA := nodeToSplit.entries(i).elem;
       pointB := nodeToSplit.entries(j).elem;
     END IF;
@@ -623,9 +638,9 @@ member procedure split_node(nodeToSplit node, apoint point) as
     -- el mismo.
     FOR i IN nodeToSplit.entries.FIRST .. nodeToSplit.entries.COUNT
     LOOP
-      minimumDistanceBewteenPointsA := pointA.distance(nodeToSplit.entries(i).elem;
-      minimumDistanceBewteenPointsB := pointB.distance(nodeToSplit.entries(i).elem;
-      IF minimumDistanceBewteenPointsA < minimumDistanceBewteenPointsB THEN
+      minDistBewteenPointsA := pointA.distance(nodeToSplit.entries(i).elem);
+      minDistBewteenPointsB := pointB.distance(nodeToSplit.entries(i).elem);
+      IF minDistBewteenPointsA < minDistBewteenPointsB THEN
         INSERT INTO listA VALUES (pointA);
       ELSE
         INSERT INTO listB VALUES (pointB);
@@ -664,7 +679,7 @@ member function choose_leaf(startNode node, apoint point) return node as
   begin
     -- Chequea si el nodo actual no tiene hijos o tiene al menos uno (y ese es un punto),
     -- lo que significa que lo devuelve porque encontró una hoja.
-    IF startNode.entries.COUNT = 0 OR startNode.entries(startNode.entries.FIRST) is a point THEN
+    IF startNode.entries.COUNT = 0 OR startNode.entries(startNode.entries.FIRST) IS OF TYPE (point) THEN
       return startNode;
     ELSE
       -- Define como distancia más corta inicial al primer nodo en la lista.
@@ -715,7 +730,7 @@ member function choose_leaf(startNode node, apoint point) return node as
           -- Volvemos a ingresar los puntos que quedaron solos como si fueran nuevos.
           FOR i IN nodeToWorkOn.entries.FIRST .. nodeToWorkOn.entries.COUNT
           LOOP
-            insert_element(nodeToWorkOn.entries(i).elem;
+            insert_element(nodeToWorkOn.entries(i).elem);
           END LOOP;
         END IF;
     END LOOP;
@@ -744,6 +759,7 @@ member function choose_leaf(startNode node, apoint point) return node as
         -- Bajamos un nivel recursivamente.
         levelDownNode := father_of_deceased(startNode, apoint);
         return levelDownNode;
+      END IF;
     END LOOP;
   end father_of_deceased;
   
