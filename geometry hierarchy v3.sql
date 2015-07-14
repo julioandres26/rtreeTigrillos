@@ -560,13 +560,13 @@ member function choose_leaf(startNode node, apoint IN point) return container is
     ELSE
       currentCount := startNode.entries.COUNT;
       levelDownNode := startNode.entries(startNode.entries.FIRST);
-      mediumPoint := point((levelDownNode.width/2),(levelDownNode.height/2));
+      mediumPoint := point((levelDownNode.elem.width()/2),(levelDownNode.elem.height()/2));
       minimumDistance := apoint.distance(mediumPoint);
       
       FOR i IN startNode.entries.NEXT(startNode.entries.FIRST) .. currentCount
       LOOP
         thislevelDownNode := startNode.entries(i);
-        thisMediumPoint := point((thislevelDownNode.width/2),(thislevelDownNode.height/2));
+        thisMediumPoint := point((thislevelDownNode.elem.width()/2),(thislevelDownNode.elem.height()/2));
         thisminimumDistance := apoint.distance(thisMediumPoint);
         IF thisMinimumDistance < minimumDistance THEN
           minimumDistance := thisMinimumDistance;
